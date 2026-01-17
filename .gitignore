@@ -1,4 +1,4 @@
-# Python-generated files
+# Python-generated files (Standard)
 __pycache__/
 *.py[oc]
 build/
@@ -8,3 +8,18 @@ wheels/
 
 # Virtual environments
 .venv
+env/
+venv/
+
+# Environment Variables 
+.env
+.env.local
+
+# Database files 
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE Settings 
+.vscode/
+.idea/

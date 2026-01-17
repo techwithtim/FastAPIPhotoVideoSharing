@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from sqlalchemy import select
 from app.images import imagekit
-from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+
 import shutil
 import os
 import uuid
@@ -40,27 +40,23 @@ async def upload_file(
             temp_file_path = temp_file.name
             shutil.copyfileobj(file.file, temp_file)
 
-        upload_result = imagekit.upload_file(
-            file=open(temp_file_path, "rb"),
-            file_name=file.filename,
-            options=UploadFileRequestOptions(
-                use_unique_file_name=True,
-                tags=["backend-upload"]
-            )
+        with open(temp_file_path, "rb") as file_to_upload:
+            upload_result = imagekit.files.upload(
+                file=file_to_upload,
+                file_name=file.filename
         )
 
-        if upload_result.response_metadata.http_status_code == 200:
-            post = Post(
-                user_id=user.id,
-                caption=caption,
-                url=upload_result.url,
-                file_type="video" if file.content_type.startswith("video/") else "image",
-                file_name=upload_result.name
-            )
-            session.add(post)
-            await session.commit()
-            await session.refresh(post)
-            return post
+        post = Post(
+            user_id=user.id,
+            caption=caption,
+            url=upload_result.url,
+            file_type="video" if file.content_type.startswith("video/") else "image",
+            file_name=upload_result.name
+        )
+        session.add(post)
+        await session.commit()
+        await session.refresh(post)
+        return post
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
